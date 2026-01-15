@@ -1,8 +1,14 @@
-# NecrOS 💀
+# NecrOS 💀 v0.3
 
 ## "Resurrecting the Silicon Dead"
 
 **Le Kali du 32-bits** — Un OS de pentest ultra-léger basé sur Alpine Linux, conçu pour faire revivre les vieilles machines et offrir un environnement de hacking complet sur du matériel limité.
+
+### 🆕 Nouveautés v0.3
+- **necros-vanish** : Mode fantôme avec 3 niveaux (ghost/stealth/nuclear)
+- **necros-payload** : Générateur de reverse shells interactif (12+ payloads)
+- **Boot splash** : Animation ASCII au démarrage
+- **Blue Team toolbox** : Outils de défense et forensics
 
 ---
 
