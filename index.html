@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NecrOS — Resurrecting the Silicon Dead</title>
+<meta name="description" content="NecrOS — Le Kali du 32-bits. Un OS de pentest ultra-léger basé sur Alpine Linux, conçu pour faire revivre les vieilles machines.">
+<meta name="keywords" content="NecrOS, pentest, 32-bit, Alpine Linux, hacking, security, lightweight OS">
+<meta property="og:title" content="NecrOS — Resurrecting the Silicon Dead">
+<meta property="og:description" content="Le Kali du 32-bits — Ultra-light pentest OS based on Alpine Linux">
+<meta property="og:image" content="necroslogo2.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💀</text></svg>">
+
+<style>
+/* ============================================================
+   NecrOS — CRT NECROMANCER TERMINAL
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Creepster&display=swap');
+
+:root {
+  --phosphor: #00ff41;
+  --phosphor-dim: #00cc33;
+  --phosphor-glow: #00ff4180;
+  --phosphor-faint: #00ff4115;
+  --crt-black: #0a0a0a;
+  --crt-dark: #0d0d0d;
+  --amber: #ffb000;
+  --blood: #cc2200;
+  --blood-bright: #ff3311;
+  --bone: #d4c5a9;
+  --rust: #8b4513;
+  --terminal-green: #33ff33;
+  --scanline-opacity: 0.04;
+  --flicker-intensity: 0.015;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--phosphor-dim) var(--crt-black);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--crt-black); }
+::-webkit-scrollbar-thumb { background: var(--phosphor-dim); border-radius: 3px; }
+
+body {
+  background: var(--crt-black);
+  color: var(--phosphor);
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 18px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ---- CRT OVERLAY EFFECTS ---- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 65, var(--scanline-opacity)) 2px,
+    rgba(0, 255, 65, var(--scanline-opacity)) 4px
+  );
+  pointer-events: none;
+  z-index: 10000;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  3% { opacity: 0.97; }
+  6% { opacity: 1; }
+  7.5% { opacity: 0.95; }
+  9% { opacity: 1; }
+  50% { opacity: 0.99; }
+  52% { opacity: 0.96; }
+  54% { opacity: 1; }
+}
+
+.crt-flicker {
+  animation: flicker 8s infinite;
+}
+
+/* ---- MATRIX RAIN BACKGROUND ---- */
+#matrix-rain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.06;
+}
+
+/* ---- GLOBAL LAYOUT ---- */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+a {
+  color: var(--phosphor);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+a:hover {
+  color: var(--crt-black);
+  background: var(--phosphor);
+  text-shadow: none;
+}
+
+::selection {
+  background: var(--phosphor);
+  color: var(--crt-black);
+}
+
+/* ---- NAV ---- */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--phosphor-faint);
+  padding: 0 24px;
+  transition: transform 0.3s;
+}
+
+.nav-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+}
+
+.nav-logo {
+  font-family: 'Creepster', cursive;
+  font-size: 24px;
+  color: var(--blood-bright);
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 51, 17, 0.5);
+}
+
+.nav-logo:hover {
+  background: none;
+  color: var(--blood-bright);
+  text-shadow: 0 0 20px rgba(255, 51, 17, 0.8);
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-links a {
+  font-size: 15px;
+  padding: 4px 10px;
+  letter-spacing: 1px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.nav-links a::before {
+  content: '> ';
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.nav-links a:hover::before {
+  opacity: 1;
+}
+
+/* ---- HERO ---- */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  position: relative;
+}
+
+.hero-logo {
+  width: min(90vw, 720px);
+  margin-bottom: 32px;
+  filter: drop-shadow(0 0 40px rgba(0, 255, 65, 0.15));
+  animation: logoAppear 1.5s ease-out;
+  image-rendering: auto;
+}
+
+@keyframes logoAppear {
+  0% { opacity: 0; transform: scale(0.95); filter: blur(8px) brightness(3); }
+  30% { filter: blur(0) brightness(1.5); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 40px rgba(0, 255, 65, 0.15)); }
+}
+
+.hero-tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(14px, 2.5vw, 20px);
+  color: var(--phosphor-dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-shadow: 0 0 15px var(--phosphor-glow);
+}
+
+.hero-sub {
+  font-size: clamp(16px, 3vw, 22px);
+  color: var(--bone);
+  max-width: 600px;
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s forwards;
+}
+
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px); }
+}
+
+.hero-cta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeUp 0.8s 1.2s forwards;
+}
+
+.btn {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  padding: 12px 28px;
+  border: 1px solid;
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--phosphor);
+  color: var(--crt-black);
+  border-color: var(--phosphor);
+  text-shadow: none;
+}
+
+.btn-primary:hover {
+  background: #fff;
+  color: var(--crt-black);
+  box-shadow: 0 0 30px var(--phosphor-glow), inset 0 0 30px var(--phosphor-glow);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--phosphor);
+  border-color: var(--phosphor-dim);
+}
+
+.btn-ghost:hover {
+  background: var(--phosphor);
+  color: var(--crt-black);
+}
+
+.hero-scroll {
+  position: absolute;
+  bottom: 30px;
+  opacity: 0;
+  animation: fadeUp 0.8s 2s forwards;
+}
+
+.hero-scroll span {
+  display: block;
+  width: 2px;
+  height: 24px;
+  background: var(--phosphor-dim);
+  margin: 8px auto 0;
+  animation: scrollPulse 2s infinite;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* ---- SECTION STYLING ---- */
+section {
+  padding: 100px 0;
+  position: relative;
+}
+
+.section-header {
+  margin-bottom: 48px;
+}
+
+.section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--amber);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-label::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--amber);
+}
+
+.section-title {
+  font-family: 'Creepster', cursive;
+  font-size: clamp(32px, 5vw, 52px);
+  color: var(--bone);
+  letter-spacing: 3px;
+  line-height: 1.1;
+}
+
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--phosphor-dim), transparent);
+  margin: 0;
+  border: none;
+}
+
+/* ---- ABOUT / TERMINAL BLOCK ---- */
+.terminal-window {
+  background: var(--crt-dark);
+  border: 1px solid #1a1a1a;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 24px 0;
+}
+
+.terminal-bar {
+  background: #151515;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.terminal-dot:nth-child(1) { background: var(--blood); }
+.terminal-dot:nth-child(2) { background: var(--amber); }
+.terminal-dot:nth-child(3) { background: var(--phosphor-dim); }
+
+.terminal-bar-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: #666;
+  margin-left: 8px;
+}
+
+.terminal-body {
+  padding: 20px;
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+
+.terminal-body .prompt {
+  color: var(--phosphor);
+}
+
+.terminal-body .comment {
+  color: #555;
+}
+
+.terminal-body .output {
+  color: var(--bone);
+}
+
+.terminal-body .highlight {
+  color: var(--amber);
+}
+
+.terminal-body .error {
+  color: var(--blood-bright);
+}
+
+/* ---- SPECS COMPARISON ---- */
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2px;
+  background: #1a1a1a;
+  border: 1px solid #1a1a1a;
+  margin: 32px 0;
+}
+
+.spec-card {
+  background: var(--crt-dark);
+  padding: 28px 20px;
+  text-align: center;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.spec-card:hover {
+  background: #111;
+}
+
+.spec-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--phosphor);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.spec-card:hover::before {
+  transform: scaleX(1);
+}
+
+.spec-value {
+  font-size: 36px;
+  font-weight: bold;
+  color: var(--phosphor);
+  text-shadow: 0 0 20px var(--phosphor-glow);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.spec-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: #777;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ---- COMPARISON TABLE ---- */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 32px 0;
+  font-size: 16px;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.compare-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--amber);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--amber);
+}
+
+.compare-table td:first-child {
+  color: #888;
+}
+
+.compare-table .necros-col {
+  color: var(--phosphor);
+  text-shadow: 0 0 8px var(--phosphor-glow);
+  font-weight: bold;
+}
+
+.compare-table .others-col {
+  color: #555;
+}
+
+.compare-table tr:hover td {
+  background: rgba(0, 255, 65, 0.03);
+}
+
+/* ---- TOOLS GRID ---- */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 32px 0;
+}
+
+.tool-card {
+  border: 1px solid #1a1a1a;
+  padding: 24px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.tool-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--phosphor);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+
+.tool-card:hover::after {
+  transform: scaleX(1);
+}
+
+.tool-card:hover {
+  border-color: #333;
+  background: rgba(0, 255, 65, 0.02);
+}
+
+.tool-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.tool-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  color: var(--phosphor);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.tool-desc {
+  font-size: 15px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.tool-cmd {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--amber);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 10px;
+  display: inline-block;
+}
+
+/* ---- INSTALL SECTION ---- */
+.install-steps {
+  counter-reset: step;
+  list-style: none;
+  margin: 32px 0;
+}
+
+.install-steps li {
+  counter-increment: step;
+  padding: 20px 20px 20px 72px;
+  border-left: 1px solid #1a1a1a;
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.install-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: -1px;
+  top: 20px;
+  width: 40px;
+  height: 40px;
+  background: var(--crt-black);
+  border: 1px solid var(--phosphor-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--phosphor);
+}
+
+.install-steps li .step-title {
+  color: var(--bone);
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.install-steps li .step-desc {
+  color: #777;
+  font-size: 15px;
+}
+
+.install-cmd {
+  background: var(--crt-dark);
+  border: 1px solid #1a1a1a;
+  padding: 16px 20px;
+  margin: 24px 0;
+  position: relative;
+  font-size: 17px;
+  overflow-x: auto;
+}
+
+.install-cmd .prefix {
+  color: var(--phosphor-dim);
+  user-select: none;
+}
+
+.install-cmd code {
+  color: var(--phosphor);
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #666;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  color: var(--phosphor);
+  border-color: var(--phosphor-dim);
+}
+
+/* ---- GITHUB CTA ---- */
+.cta-section {
+  text-align: center;
+  padding: 80px 0 120px;
+}
+
+.cta-skull {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: skullFloat 3s ease-in-out infinite;
+}
+
+@keyframes skullFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.cta-title {
+  font-family: 'Creepster', cursive;
+  font-size: clamp(28px, 5vw, 48px);
+  color: var(--bone);
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+}
+
+.cta-sub {
+  color: #777;
+  font-size: 18px;
+  margin-bottom: 32px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---- FOOTER ---- */
+.footer {
+  border-top: 1px solid #1a1a1a;
+  padding: 40px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #444;
+}
+
+.footer a {
+  color: #666;
+}
+
+.footer a:hover {
+  color: var(--phosphor);
+  background: none;
+}
+
+.footer-quote {
+  color: #333;
+  font-style: italic;
+  margin-top: 16px;
+  font-size: 15px;
+}
+
+/* ---- TYPING CURSOR ---- */
+.typing-cursor {
+  display: inline-block;
+  width: 10px;
+  height: 20px;
+  background: var(--phosphor);
+  vertical-align: middle;
+  animation: cursorBlink 1s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ---- GLITCH TEXT ---- */
+.glitch {
+  position: relative;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch::before {
+  color: var(--blood-bright);
+  animation: glitch1 3s infinite;
+  clip-path: inset(0 0 80% 0);
+}
+
+.glitch::after {
+  color: var(--phosphor);
+  animation: glitch2 3s infinite;
+  clip-path: inset(80% 0 0 0);
+}
+
+@keyframes glitch1 {
+  0%, 95%, 100% { transform: translateX(0); }
+  96% { transform: translateX(-3px); }
+  97% { transform: translateX(3px); }
+  98% { transform: translateX(-1px); }
+}
+
+@keyframes glitch2 {
+  0%, 93%, 100% { transform: translateX(0); }
+  94% { transform: translateX(3px); }
+  95% { transform: translateX(-3px); }
+  96% { transform: translateX(1px); }
+}
+
+/* ---- SCROLL REVEAL ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- MOBILE ---- */
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+
+  .nav-links { display: none; }
+
+  .hero { padding: 60px 16px 40px; min-height: 90vh; }
+  .hero-logo { width: 95vw; margin-bottom: 20px; }
+
+  section { padding: 60px 0; }
+
+  .specs-grid { grid-template-columns: repeat(2, 1fr); }
+  .tools-grid { grid-template-columns: 1fr; }
+
+  .compare-table { font-size: 14px; }
+  .compare-table th, .compare-table td { padding: 8px 10px; }
+
+  .install-steps li { padding-left: 56px; }
+}
+
+/* ---- HAMBURGER (mobile) ---- */
+.nav-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--phosphor);
+  margin: 5px 0;
+  transition: all 0.3s;
+}
+
+@media (max-width: 640px) {
+  .nav-hamburger { display: block; }
+
+  .nav-links {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 10, 0.97);
+    flex-direction: column;
+    padding: 16px 24px;
+    border-bottom: 1px solid #1a1a1a;
+    transform: translateY(-10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+  }
+
+  .nav-links.open {
+    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+
+/* ---- BADGE ROW ---- */
+.badge-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px 0 0;
+  opacity: 0;
+  animation: fadeUp 0.8s 1.5s forwards;
+}
+
+.badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border: 1px solid #333;
+  color: #666;
+}
+
+.badge-green { border-color: var(--phosphor-dim); color: var(--phosphor-dim); }
+.badge-amber { border-color: var(--amber); color: var(--amber); }
+</style>
+</head>
+
+<body class="crt-flicker">
+
+<!-- Matrix Rain Canvas -->
+<canvas id="matrix-rain"></canvas>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">NecrOS</a>
+    <button class="nav-hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#specs">Specs</a>
+      <a href="#tools">Tools</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/WaD45/NecrOS" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <img src="necroslogo2.png" alt="NecrOS — Resurrecting the Silicon Dead" class="hero-logo">
+
+  <p class="hero-tagline">Le Kali du 32-bits</p>
+
+  <p class="hero-sub">
+    Un OS de pentest ultra-léger basé sur Alpine Linux.<br>
+    Conçu pour faire revivre les vieilles machines.
+  </p>
+
+  <div class="hero-cta">
+    <a href="https://github.com/WaD45/NecrOS" target="_blank" rel="noopener" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+    <a href="#install" class="btn btn-ghost">Installation</a>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge badge-green">Alpine Linux</span>
+    <span class="badge badge-green">256 MB RAM</span>
+    <span class="badge badge-amber">32-bit Native</span>
+    <span class="badge">MIT License</span>
+  </div>
+
+  <div class="hero-scroll">
+    <span></span>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- About -->
+<section id="about">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">init_necros.sys</div>
+      <h2 class="section-title glitch" data-text="Qu'est-ce que NecrOS ?">Qu'est-ce que NecrOS ?</h2>
+    </div>
+
+    <div class="terminal-window reveal">
+      <div class="terminal-bar">
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <span class="terminal-bar-title">root@necros:~</span>
+      </div>
+      <div class="terminal-body">
+        <span class="prompt">root@necros:~#</span> <span class="highlight">cat /etc/necros/manifesto</span><br><br>
+        <span class="output">Les distributions de sécurité modernes sont devenues des usines à gaz.</span><br>
+        <span class="output">Kali : 2 GB de RAM minimum, 20 GB de disque.</span><br>
+        <span class="output">Parrot : 1 GB de RAM, 16 GB de disque.</span><br><br>
+        <span class="output">Pendant ce temps, des millions de machines 32-bit prennent la poussière.</span><br>
+        <span class="output">Des Pentium, des Atom, des Celeron... du silicium encore vivant,</span><br>
+        <span class="output">condamné à mort par l'obsolescence logicielle.</span><br><br>
+        <span class="error">NecrOS refuse cette sentence.</span><br><br>
+        <span class="output">Basé sur Alpine Linux (musl, OpenRC, BusyBox), NecrOS fait</span><br>
+        <span class="output">tourner un environnement de pentest complet sur</span> <span class="highlight">256 MB de RAM</span><span class="output">.</span><br>
+        <span class="output">Terminal-first. Modulaire. Sans compromis.</span><br><br>
+        <span class="comment"># "Dans les cendres du silicium oublié, le Nécromancien trouve sa puissance."</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- Specs -->
+<section id="specs">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">hardware_requirements</div>
+      <h2 class="section-title">Le mort qui bat les vivants</h2>
+    </div>
+
+    <div class="specs-grid reveal">
+      <div class="spec-card">
+        <div class="spec-value">256</div>
+        <div class="spec-label">MB RAM Min</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">500</div>
+        <div class="spec-label">MB Disque Min</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">32</div>
+        <div class="spec-label">Bit Native</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">6</div>
+        <div class="spec-label">Toolboxes</div>
+      </div>
+    </div>
+
+    <table class="compare-table reveal">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="necros-col">NecrOS</th>
+          <th class="others-col">Kali</th>
+          <th class="others-col">Parrot</th>
+          <th class="others-col">BlackArch</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>RAM minimum</td>
+          <td class="necros-col">256 MB</td>
+          <td class="others-col">2 GB</td>
+          <td class="others-col">1 GB</td>
+          <td class="others-col">1 GB</td>
+        </tr>
+        <tr>
+          <td>Disque minimum</td>
+          <td class="necros-col">500 MB</td>
+          <td class="others-col">20 GB</td>
+          <td class="others-col">16 GB</td>
+          <td class="others-col">20 GB</td>
+        </tr>
+        <tr>
+          <td>Support x86 32-bit</td>
+          <td class="necros-col">Natif</td>
+          <td class="others-col">Abandonné</td>
+          <td class="others-col">Limité</td>
+          <td class="others-col">Non</td>
+        </tr>
+        <tr>
+          <td>Base</td>
+          <td class="necros-col">Alpine (musl)</td>
+          <td class="others-col">Debian</td>
+          <td class="others-col">Debian</td>
+          <td class="others-col">Arch</td>
+        </tr>
+        <tr>
+          <td>Init system</td>
+          <td class="necros-col">OpenRC</td>
+          <td class="others-col">systemd</td>
+          <td class="others-col">systemd</td>
+          <td class="others-col">systemd</td>
+        </tr>
+        <tr>
+          <td>Installation modulaire</td>
+          <td class="necros-col">Oui (toolboxes)</td>
+          <td class="others-col">Monolithique</td>
+          <td class="others-col">Monolithique</td>
+          <td class="others-col">AUR</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- Tools -->
+<section id="tools">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">toolbox_manifest</div>
+      <h2 class="section-title">Arsenal du Nécromancien</h2>
+    </div>
+
+    <div class="tools-grid">
+      <div class="tool-card reveal">
+        <div class="tool-icon">📡</div>
+        <div class="tool-name">WiFi / Radio</div>
+        <div class="tool-desc">aircrack-ng, reaver, hostapd, macchanger, RTL-SDR, hashcat</div>
+        <div class="tool-cmd">necros-toolbox wifi</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-icon">🌐</div>
+        <div class="tool-name">Web Pentest</div>
+        <div class="tool-desc">sqlmap, nikto, hydra, ffuf, gobuster, mitmproxy, whatweb</div>
+        <div class="tool-cmd">necros-toolbox web</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-icon">🔬</div>
+        <div class="tool-name">Reverse Engineering</div>
+        <div class="tool-desc">gdb + GEF, radare2, strace, ltrace, pwntools, binwalk</div>
+        <div class="tool-cmd">necros-toolbox reverse</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-icon">🛡️</div>
+        <div class="tool-name">Blue Team</div>
+        <div class="tool-desc">suricata, fail2ban, lynis, YARA, rkhunter, ClamAV, sleuthkit</div>
+        <div class="tool-cmd">necros-toolbox blue</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-icon">🔍</div>
+        <div class="tool-name">OSINT & Recon</div>
+        <div class="tool-desc">subfinder, shodan, theHarvester, exiftool, crt.sh, whois</div>
+        <div class="tool-cmd">necros-toolbox osint</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-icon">🔐</div>
+        <div class="tool-name">Crypto & Stego</div>
+        <div class="tool-desc">steghide, john, openssl, necros-crypt multi-tool, pycryptodome</div>
+        <div class="tool-cmd">necros-toolbox crypto</div>
+      </div>
+    </div>
+
+    <div class="section-header reveal" style="margin-top: 64px;">
+      <div class="section-label">exclusive_weapons</div>
+      <h2 class="section-title" style="font-size: clamp(24px, 4vw, 38px);">Outils exclusifs NecrOS</h2>
+    </div>
+
+    <div class="tools-grid">
+      <div class="tool-card reveal">
+        <div class="tool-name" style="color: var(--amber);">necros-recon</div>
+        <div class="tool-desc">Pipeline de reconnaissance automatisée. DNS, WHOIS, portscan, web headers, OSINT passif, génération de rapports.</div>
+        <div class="tool-cmd">necros-recon target.com -f</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-name" style="color: var(--blood-bright);">necros-vanish</div>
+        <div class="tool-desc">Anti-forensics. 3 niveaux : ghost (logs), stealth (cache+réseau), nuclear (destruction totale + wipe).</div>
+        <div class="tool-cmd">necros-vanish stealth</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-name" style="color: var(--amber);">necros-payload</div>
+        <div class="tool-desc">Forge de payloads. 13 reverse shells, bind shells, web shells, templates MSFvenom, shell upgrade.</div>
+        <div class="tool-cmd">necros-payload reverse 4</div>
+      </div>
+
+      <div class="tool-card reveal">
+        <div class="tool-name" style="color: var(--amber);">necros-crypt</div>
+        <div class="tool-desc">Couteau suisse crypto. Hash, encode, encrypt AES-256, identifier des hashes, générer des mots de passe.</div>
+        <div class="tool-cmd">necros-crypt identify 5d41...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- Install -->
+<section id="install">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">resurrection_protocol</div>
+      <h2 class="section-title">Invoquer NecrOS</h2>
+    </div>
+
+    <div class="terminal-window reveal">
+      <div class="terminal-bar">
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <span class="terminal-bar-title">Installation rapide</span>
+      </div>
+      <div class="terminal-body">
+        <span class="comment"># Sur un Alpine Linux fraîchement installé :</span><br><br>
+        <span class="prompt">root@alpine:~#</span> <span class="highlight">wget -qO- https://raw.githubusercontent.com/WaD45/NecrOS/main/install.sh | sh</span><br><br>
+        <span class="comment"># Ou manuellement :</span><br>
+        <span class="prompt">root@alpine:~#</span> git clone https://github.com/WaD45/NecrOS.git<br>
+        <span class="prompt">root@alpine:~#</span> cd NecrOS<br>
+        <span class="prompt">root@alpine:~#</span> <span class="highlight">sh necro_install.sh</span><br><br>
+        <span class="comment"># Options :</span><br>
+        <span class="prompt">root@alpine:~#</span> sh necro_install.sh <span class="highlight">--minimal</span>&nbsp;&nbsp;&nbsp;<span class="comment"># Core seulement</span><br>
+        <span class="prompt">root@alpine:~#</span> sh necro_install.sh <span class="highlight">--full</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Tout + toolboxes</span><br>
+        <span class="prompt">root@alpine:~#</span> sh necro_install.sh <span class="highlight">--no-gui</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Sans interface</span><br>
+      </div>
+    </div>
+
+    <ol class="install-steps reveal">
+      <li>
+        <div class="step-title">Installer Alpine Linux</div>
+        <div class="step-desc">Télécharger l'ISO depuis alpinelinux.org. Booter, login root (pas de mot de passe), lancer setup-alpine (mode "sys").</div>
+      </li>
+      <li>
+        <div class="step-title">Lancer l'installeur NecrOS</div>
+        <div class="step-desc">L'installeur détecte automatiquement l'architecture, la RAM disponible, et adapte l'installation. Swap automatique sur les machines &lt; 512 MB.</div>
+      </li>
+      <li>
+        <div class="step-title">Installer les toolboxes</div>
+        <div class="step-desc">Lancez necros-toolbox et choisissez uniquement les outils dont vous avez besoin. Chaque toolbox est indépendante.</div>
+      </li>
+      <li>
+        <div class="step-title">Entrer dans l'abysse</div>
+        <div class="step-desc">startx pour l'interface i3wm, ou restez en terminal. NecrOS est prêt.</div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-skull reveal">💀</div>
+    <h2 class="cta-title reveal glitch" data-text="Rejoins la résurrection">Rejoins la résurrection</h2>
+    <p class="cta-sub reveal">Open source. Communautaire. Pour les morts-vivants du silicium.</p>
+    <div class="hero-cta reveal">
+      <a href="https://github.com/WaD45/NecrOS" target="_blank" rel="noopener" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Voir sur GitHub
+      </a>
+      <a href="https://github.com/WaD45/NecrOS/releases" target="_blank" rel="noopener" class="btn btn-ghost">
+        Releases
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <p>NecrOS v1.0 — MIT License — Basé sur <a href="https://alpinelinux.org" target="_blank" rel="noopener">Alpine Linux</a></p>
+    <p class="footer-quote">"Dans les cendres du silicium oublié, le Nécromancien trouve sa puissance."</p>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script>
+// ---- Matrix Rain ----
+(function() {
+  const canvas = document.getElementById('matrix-rain');
+  const ctx = canvas.getContext('2d');
+  let w, h, columns, drops;
+
+  const chars = 'NecrOS01アイウエオカキクケコサシスセソ╬═║╗╔╚╝░▒▓█';
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    columns = Math.floor(w / 16);
+    drops = Array(columns).fill(1);
+  }
+
+  function draw() {
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#00ff41';
+    ctx.font = '14px monospace';
+
+    for (let i = 0; i < drops.length; i++) {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(char, i * 16, drops[i] * 16);
+      if (drops[i] * 16 > h && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  setInterval(draw, 60);
+})();
+
+// ---- Scroll Reveal ----
+(function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+})();
+
+// ---- Copy install command ----
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const code = btn.parentElement.querySelector('code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  });
+});
+
+// ---- Mobile nav close on link click ----
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.remove('open');
+  });
+});
+</script>
+
+</body>
+</html>
