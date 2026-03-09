@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="necroslogo.png" alt="NecrOS Logo" width="400"/>
+</p>
+
 # NecrOS v1.0
 
 ### "Resurrecting the Silicon Dead"
